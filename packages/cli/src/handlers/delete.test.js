@@ -129,12 +129,13 @@ describe("deleteHandler", () => {
   it("should delete multiple worktrees by name", async () => {
     resetMocks();
     getGitRootMock.mock.mockImplementation(() => Promise.resolve("/test/repo"));
-    deleteWorktreeMock.mock.mockImplementation((gitRoot, _worktreesDir, name) =>
-      Promise.resolve(
-        ok({
-          message: `Deleted worktree '${name}' and its branch '${name}'`,
-        }),
-      ),
+    deleteWorktreeMock.mock.mockImplementation(
+      (_gitRoot, _worktreesDir, name) =>
+        Promise.resolve(
+          ok({
+            message: `Deleted worktree '${name}' and its branch '${name}'`,
+          }),
+        ),
     );
 
     await rejects(
