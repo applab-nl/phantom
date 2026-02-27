@@ -25,6 +25,18 @@ export const phantomConfigSchema = z
       .passthrough()
       .optional(),
     worktreesDirectory: z.string().optional(),
+    zellij: z
+      .object({
+        agent: z
+          .object({
+            command: z.string(),
+            args: z.array(z.string()).optional(),
+          })
+          .optional(),
+        layout: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
   })
   .passthrough();
 

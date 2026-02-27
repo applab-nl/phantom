@@ -17,7 +17,8 @@
     "ready": "pnpm fix && pnpm typecheck && pnpm test",
     "ready:check": "pnpm lint && pnpm typecheck && pnpm test",
     "phantom": "pnpm --filter @aku11i/phantom-cli run phantom",
-    "compile": "pnpm --filter @aku11i/phantom-cli run compile"
+    "compile": "pnpm --filter @aku11i/phantom-cli run compile",
+    "install:global": "pnpm build && pnpm --filter @aku11i/phantom-cli run install:global"
   },
   "engines": {
     "node": ">=22.0.0"

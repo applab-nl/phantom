@@ -15,7 +15,8 @@
     "test:shell:fish": "node --test --experimental-strip-types --experimental-test-module-mocks src/completions/phantom.fish.test.shell.js",
     "test:shell:zsh": "node --test --experimental-strip-types --experimental-test-module-mocks src/completions/phantom.zsh.test.shell.js",
     "test": "node --test --experimental-strip-types --experimental-test-module-mocks \"src/**/*.test.js\"",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "install:global": "bun build src/bin/phantom.ts --compile --minify --outfile dist/phantom && sudo cp dist/phantom /usr/local/bin/phantom"
   },
   "dependencies": {
     "@aku11i/phantom-core": "workspace:*",
