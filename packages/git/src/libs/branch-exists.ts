@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@aku11i/phantom-shared";
+import { ok, type Result } from "@aku11i/phantom-shared";
 import { executeGitCommand } from "../executor.ts";
 
 export async function branchExists(
@@ -7,23 +7,12 @@ export async function branchExists(
 ): Promise<Result<boolean, Error>> {
   try {
     await executeGitCommand(
-      ["show-ref", "--verify", "--quiet", `refs/heads/${branchName}`],
+      ["show-ref", "--verify", `refs/heads/${branchName}`],
       { cwd: gitRoot },
     );
     return ok(true);
-  } catch (error) {
-    if (error && typeof error === "object" && "code" in error) {
-      const execError = error as { code?: number; message?: string };
-      if (execError.code === 1) {
-        return ok(false);
-      }
-    }
-    return err(
-      new Error(
-        `Failed to check branch existence: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      ),
-    );
+  } catch {
+    // show-ref --verify exits non-zero when ref doesn't exist
+    return ok(false);
   }
 }
