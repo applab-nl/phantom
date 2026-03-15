@@ -5,19 +5,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "build": "turbo run build",
+    "test": "turbo run test",
     "test:shell": "pnpm --filter @phantompane/cli-private run test:shell",
     "test:shell:bash": "pnpm --filter @phantompane/cli-private run test:shell:bash",
     "test:shell:fish": "pnpm --filter @phantompane/cli-private run test:shell:fish",
     "test:shell:zsh": "pnpm --filter @phantompane/cli-private run test:shell:zsh",
-    "lint": "oxfmt --check . && oxlint .",
-    "fix": "oxfmt --write . && oxlint --fix .",
-    "typecheck": "pnpm -r typecheck",
-    "ready": "pnpm fix && pnpm typecheck && pnpm test",
-    "ready:check": "pnpm lint && pnpm typecheck && pnpm test",
+    "lint": "turbo run lint //#lint:root",
+    "fix": "turbo run fix //#fix:root",
+    "lint:root": "oxfmt --check . '!packages/**'",
+    "fix:root": "oxfmt --write . '!packages/**'",
+    "typecheck": "turbo run typecheck",
+    "ready": "turbo run fix typecheck test",
+    "ready:check": "turbo run lint typecheck test",
     "phantom": "pnpm --filter @phantompane/cli-private run phantom",
-    "compile": "pnpm --filter @phantompane/cli-private run compile"
+    "compile": "turbo run compile --filter=@phantompane/cli-private"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -28,6 +30,7 @@
     "esbuild": "^0.27.3",
     "oxfmt": "^0.40.0",
     "oxlint": "^1.55.0",
+    "turbo": "^2.8.17",
     "typescript": "^5.9.3"
   },
   "dependencies": {
