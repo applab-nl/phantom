@@ -90,6 +90,9 @@ export async function attachHandler(args: string[]): Promise<void> {
 
   const gitRoot = await getGitRoot();
   const context = await createContext(gitRoot);
+  const directoryNameSeparator =
+    context.preferences?.directoryNameSeparator ??
+    context.config?.directoryNameSeparator;
 
   let copyFiles = context.config?.postCreate?.copyFiles ?? [];
 
@@ -115,6 +118,7 @@ export async function attachHandler(args: string[]): Promise<void> {
     branchName,
     postCreateCopyFiles,
     context.config?.postCreate?.commands,
+    directoryNameSeparator,
   );
 
   if (isErr(result)) {
