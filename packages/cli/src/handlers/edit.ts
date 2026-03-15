@@ -84,7 +84,7 @@ export async function editHandler(args: string[]): Promise<void> {
       ...getPhantomEnv(worktreeName, validation.value.path),
     });
 
-    process.exit(exitCode);
+    return process.exit(exitCode);
   } catch (error) {
     exitWithError(
       error instanceof Error ? error.message : String(error),

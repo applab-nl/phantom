@@ -85,7 +85,7 @@ export async function aiHandler(args: string[]): Promise<void> {
       validation.value.path,
     );
 
-    process.exit(exitCode);
+    return process.exit(exitCode);
   } catch (error) {
     exitWithError(
       error instanceof Error ? error.message : String(error),

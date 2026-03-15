@@ -162,7 +162,7 @@ export async function shellHandler(args: string[]): Promise<void> {
       exitWithError(result.error.message, exitCode);
     }
 
-    process.exit(result.value.exitCode);
+    return process.exit(result.value.exitCode);
   } catch (error) {
     exitWithError(
       error instanceof Error ? error.message : String(error),

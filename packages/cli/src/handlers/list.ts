@@ -61,7 +61,7 @@ export async function listHandler(args: string[] = []): Promise<void> {
             : "No worktrees found.";
           output.log(message || fallbackMessage);
         }
-        process.exit(exitCodes.success);
+        return process.exit(exitCodes.success);
       }
 
       if (values.names) {
@@ -77,7 +77,7 @@ export async function listHandler(args: string[] = []): Promise<void> {
       }
     }
 
-    process.exit(exitCodes.success);
+    return process.exit(exitCodes.success);
   } catch (error) {
     exitWithError(
       error instanceof Error ? error.message : String(error),

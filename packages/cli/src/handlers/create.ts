@@ -181,7 +181,7 @@ export async function createHandler(args: string[]): Promise<void> {
         exitWithError("", exitCode);
       }
 
-      process.exit(execResult.value.exitCode ?? 0);
+      return process.exit(execResult.value.exitCode ?? 0);
     }
 
     if (openShell && isOk(result)) {
@@ -205,7 +205,7 @@ export async function createHandler(args: string[]): Promise<void> {
         exitWithError("", exitCode);
       }
 
-      process.exit(shellResult.value.exitCode ?? 0);
+      return process.exit(shellResult.value.exitCode ?? 0);
     }
 
     if (tmuxDirection && isOk(result)) {
