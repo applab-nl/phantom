@@ -4,6 +4,7 @@ import { z } from "zod";
 export interface Preferences {
   editor?: string;
   ai?: string;
+  terminal?: string;
   worktreesDirectory?: string;
   directoryNameSeparator?: string;
   keepBranch?: boolean;
@@ -20,6 +21,7 @@ const preferencesSchema = z
   .object({
     editor: z.string().optional(),
     ai: z.string().optional(),
+    terminal: z.string().optional(),
     worktreesDirectory: z.string().optional(),
     directoryNameSeparator: z.string().optional(),
     keepBranch: z.boolean().optional(),
@@ -58,6 +60,8 @@ function parsePreferences(output: string): Preferences {
       preferences.editor = value;
     } else if (strippedKey === "ai") {
       preferences.ai = value;
+    } else if (strippedKey === "terminal") {
+      preferences.terminal = value;
     } else if (strippedKey === "worktreesdirectory") {
       preferences.worktreesDirectory = value;
     } else if (strippedKey === "directorynameseparator") {
