@@ -187,7 +187,9 @@ export async function launchHandler(args: string[]): Promise<void> {
     }
 
     const projectName = basename(gitRoot);
-    const sessionName = `${projectName}-${worktreeName.replaceAll("/", "-")}`;
+    // Zellij 0.44 limits session names to 28 characters
+    const fullSessionName = `${projectName}-${worktreeName.replaceAll("/", "-")}`;
+    const sessionName = fullSessionName.slice(0, 28);
     const insideZellij = await isInsideZellij();
 
     // Check for and clean up dead Zellij sessions
@@ -215,7 +217,7 @@ export async function launchHandler(args: string[]): Promise<void> {
         args: [
           "--session",
           sessionName,
-          "--layout",
+          "--new-session-with-layout",
           layoutPath,
         ],
         cwd: worktreePath,
