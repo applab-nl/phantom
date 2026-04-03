@@ -1,13 +1,6 @@
 import { configGetRegexp } from "@phantompane/git";
 import { z } from "zod";
-
-export interface Preferences {
-  editor?: string;
-  ai?: string;
-  worktreesDirectory?: string;
-  directoryNameSeparator?: string;
-  keepBranch?: boolean;
-}
+import type { Preferences } from "./keys.ts";
 
 export class PreferencesValidationError extends Error {
   constructor(message: string) {
@@ -26,13 +19,11 @@ const preferencesSchema = z
   })
   .passthrough();
 
-function parsePreferences(output: string): Preferences {
+export function parsePreferences(output: string): Preferences {
   if (!output) {
     return {};
   }
 
-  // git config --null --get-regexp emits entries separated by \0.
-  // Each entry is "key\nvalue" (newline-delimited) even with --null.
   const records = output.split("\0").filter((record) => record.length > 0);
   const preferences: Record<string, unknown> = {};
 

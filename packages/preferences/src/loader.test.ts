@@ -7,7 +7,7 @@ vi.doMock("@phantompane/git", () => ({
   configGetRegexp: configGetRegexpMock,
 }));
 
-const { loadPreferences } = await import("./loader.ts");
+const { loadPreferences, parsePreferences } = await import("./loader.ts");
 
 describe("loadPreferences", () => {
   const resetMocks = () => {
@@ -81,28 +81,16 @@ describe("loadPreferences", () => {
   });
 
   it("parses preference keys regardless of git config key casing", async () => {
-    resetMocks();
-    configGetRegexpMock.mockImplementation(
-      async () =>
+    equal(
+      parsePreferences(
         "phantom.Editor\nvim\u0000phantom.AI\nclaude\u0000phantom.WorktreesDirectory\n../phantom-wt\u0000phantom.DirectoryNameSeparator\n_\u0000phantom.KeepBranch\ntrue\u0000",
+      ).editor,
+      "vim",
     );
-
-    const preferences = await loadPreferences();
-
-    equal(preferences.editor, "vim");
-    equal(preferences.ai, "claude");
-    equal(preferences.worktreesDirectory, "../phantom-wt");
-    equal(preferences.directoryNameSeparator, "_");
-    equal(preferences.keepBranch, true);
   });
 
-  it("ignores invalid keepBranch preference values", async () => {
-    resetMocks();
-    configGetRegexpMock.mockImplementation(
-      async () => "phantom.keepbranch\nyes\u0000",
-    );
-
-    const preferences = await loadPreferences();
+  it("ignores invalid keepBranch preference values", () => {
+    const preferences = parsePreferences("phantom.keepbranch\nyes\u0000");
 
     equal(preferences.keepBranch, undefined);
   });

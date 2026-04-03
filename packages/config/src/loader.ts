@@ -1,14 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { err, ok, type Result } from "@phantompane/utils";
-import type { z } from "zod";
 import {
-  type ConfigValidationError,
-  type phantomConfigSchema,
+  ConfigValidationError,
+  type PhantomConfig,
   validateConfig,
 } from "./validate.ts";
-
-export type PhantomConfig = z.infer<typeof phantomConfigSchema>;
 
 export class ConfigNotFoundError extends Error {
   constructor() {
@@ -36,6 +33,7 @@ export async function loadConfig(
 
   try {
     const content = await fs.readFile(configPath, "utf-8");
+
     try {
       const parsed = JSON.parse(content);
       const validationResult = validateConfig(parsed);
@@ -56,6 +54,7 @@ export async function loadConfig(
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
       return err(new ConfigNotFoundError());
     }
+
     throw error;
   }
 }

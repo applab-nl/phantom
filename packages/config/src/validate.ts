@@ -1,6 +1,5 @@
 import { err, ok, type Result } from "@phantompane/utils";
 import { z } from "zod";
-import type { PhantomConfig } from "./loader.ts";
 
 export class ConfigValidationError extends Error {
   constructor(message: string) {
@@ -29,6 +28,8 @@ export const phantomConfigSchema = z
   })
   .passthrough();
 
+export type PhantomConfig = z.infer<typeof phantomConfigSchema>;
+
 export function validateConfig(
   config: unknown,
 ): Result<PhantomConfig, ConfigValidationError> {
@@ -44,5 +45,5 @@ export function validateConfig(
     return err(new ConfigValidationError(message));
   }
 
-  return ok(result.data as PhantomConfig);
+  return ok(result.data);
 }
