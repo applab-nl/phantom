@@ -136,7 +136,8 @@ export async function createZellijSession(
   const zellijArgs: string[] = ["--session", sessionName];
 
   if (layout) {
-    zellijArgs.push("--new-session-with-layout", layout);
+    // Use --layout (not --new-session-with-layout) so it can combine with --session
+    zellijArgs.push("--layout", layout);
   }
 
   const spawnOptions: { cwd?: string; env?: NodeJS.ProcessEnv } = {};

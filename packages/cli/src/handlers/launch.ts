@@ -215,7 +215,7 @@ export async function launchHandler(args: string[]): Promise<void> {
         args: [
           "--session",
           sessionName,
-          "--new-session-with-layout",
+          "--layout",
           layoutPath,
         ],
         cwd: worktreePath,
