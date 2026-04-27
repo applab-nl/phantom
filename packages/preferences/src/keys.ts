@@ -1,6 +1,7 @@
 export const supportedPreferenceKeys = [
   "editor",
   "ai",
+  "terminal",
   "worktreesDirectory",
   "directoryNameSeparator",
   "keepBranch",
@@ -11,6 +12,7 @@ export type PreferenceKey = (typeof supportedPreferenceKeys)[number];
 export interface Preferences {
   editor?: string;
   ai?: string;
+  terminal?: string;
   worktreesDirectory?: string;
   directoryNameSeparator?: string;
   keepBranch?: boolean;

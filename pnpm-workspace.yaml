@@ -3,4 +3,4 @@ packages:
   - "packages/*"
   - "packages/cli/dist"
 
-minimumReleaseAge: 20160
+minimumReleaseAge: 4320

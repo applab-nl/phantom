@@ -1,0 +1,242 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { Result } from "@phantompane/utils";
+import type { ProcessError } from "./errors.ts";
+import { type SpawnSuccess, spawnProcess } from "./spawn.ts";
+
+// UNIX domain socket path limits (sun_path field of sockaddr_un).
+const ZELLIJ_SOCK_MAX_LENGTH_DARWIN = 104;
+const ZELLIJ_SOCK_MAX_LENGTH_OTHER = 108;
+// Mirrors `CLIENT_SERVER_CONTRACT_VERSION` in zellij-utils/src/consts.rs.
+const ZELLIJ_CONTRACT_DIR = "contract_version_1";
+
+interface ZellijEnv {
+  platform: NodeJS.Platform;
+  tmpDir: string;
+  uid: number;
+  socketDirOverride?: string;
+  xdgRuntimeDir?: string;
+}
+
+/**
+ * Compute Zellij's socket directory the same way zellij-utils/src/consts.rs does.
+ * Used to derive the maximum session name length permitted on this system.
+ */
+export function computeZellijSocketDir(env: ZellijEnv): string {
+  const baseDir =
+    env.socketDirOverride ??
+    (env.platform !== "darwin" && env.xdgRuntimeDir
+      ? join(env.xdgRuntimeDir, "zellij")
+      : join(env.tmpDir, `zellij-${env.uid}`));
+  return join(baseDir, ZELLIJ_CONTRACT_DIR);
+}
+
+/**
+ * Maximum allowed Zellij session name length on the current system.
+ *
+ * Zellij rejects sessions whose `<sock_dir>/<name>` path is >= the platform's
+ * UNIX socket limit. When the prefix is long (typical on macOS, where TMPDIR
+ * lives under /var/folders/...), the cap can be much smaller than expected
+ * and zellij reports a misleading "less than 0 characters" error.
+ */
+export function getZellijMaxSessionNameLength(
+  env: ZellijEnv = {
+    platform: process.platform,
+    tmpDir: tmpdir(),
+    uid: process.getuid?.() ?? 0,
+    socketDirOverride: process.env.ZELLIJ_SOCKET_DIR,
+    xdgRuntimeDir: process.env.XDG_RUNTIME_DIR,
+  },
+): number {
+  const sockMax =
+    env.platform === "darwin"
+      ? ZELLIJ_SOCK_MAX_LENGTH_DARWIN
+      : ZELLIJ_SOCK_MAX_LENGTH_OTHER;
+  const sockDir = computeZellijSocketDir(env);
+  // Path is `<sockDir>/<name>`; zellij's check is `>= sockMax`, so the name
+  // must satisfy `sockDir.length + 1 + name.length < sockMax`.
+  return Math.max(0, sockMax - sockDir.length - 2);
+}
+
+export type ZellijSplitDirection = "new" | "vertical" | "horizontal";
+
+export interface ZellijOptions {
+  direction: ZellijSplitDirection;
+  command: string;
+  args?: string[];
+  cwd?: string;
+  env?: Record<string, string>;
+  tabName?: string;
+}
+
+export interface ZellijSessionOptions {
+  sessionName: string;
+  layout?: string;
+  cwd?: string;
+  env?: Record<string, string>;
+}
+
+export interface ZellijTabOptions {
+  layout: string;
+  tabName?: string;
+  cwd?: string;
+}
+
+export type ZellijSuccess = SpawnSuccess;
+
+export type ZellijSessionStatus = "active" | "dead" | "not_found";
+
+export async function isInsideZellij(): Promise<boolean> {
+  return process.env.ZELLIJ !== undefined;
+}
+
+/**
+ * Check the status of a Zellij session by name.
+ * Returns "active" if the session exists and is running,
+ * "dead" if it exists but has exited, or "not_found" if it doesn't exist.
+ */
+export async function getZellijSessionStatus(
+  sessionName: string,
+): Promise<ZellijSessionStatus> {
+  try {
+    const { execSync } = await import("node:child_process");
+    const output = execSync("zellij list-sessions --no-formatting", {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+
+    for (const line of output.split("\n")) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) continue;
+
+      // Extract session name (everything before the first " [")
+      const bracketIndex = trimmedLine.indexOf(" [");
+      if (bracketIndex === -1) continue;
+
+      const name = trimmedLine.substring(0, bracketIndex);
+      if (name === sessionName) {
+        if (trimmedLine.includes("(EXITED")) {
+          return "dead";
+        }
+        return "active";
+      }
+    }
+
+    return "not_found";
+  } catch {
+    return "not_found";
+  }
+}
+
+/**
+ * Delete a Zellij session by name.
+ */
+export async function deleteZellijSession(
+  sessionName: string,
+): Promise<Result<void, ProcessError>> {
+  const result = await spawnProcess({
+    command: "zellij",
+    args: ["delete-session", sessionName],
+  });
+
+  if (result.ok) {
+    return { ok: true, value: undefined };
+  }
+  return result;
+}
+
+export async function executeZellijCommand(
+  options: ZellijOptions,
+): Promise<Result<ZellijSuccess, ProcessError>> {
+  const { direction, command, args, cwd, tabName } = options;
+
+  const zellijArgs: string[] = [];
+
+  switch (direction) {
+    case "new":
+      zellijArgs.push("action", "new-tab");
+      if (tabName) {
+        zellijArgs.push("--name", tabName);
+      }
+      break;
+    case "vertical":
+      zellijArgs.push("action", "new-pane", "--direction", "down");
+      break;
+    case "horizontal":
+      zellijArgs.push("action", "new-pane", "--direction", "right");
+      break;
+  }
+
+  if (cwd) {
+    zellijArgs.push("--cwd", cwd);
+  }
+
+  zellijArgs.push("--", command);
+  if (args && args.length > 0) {
+    zellijArgs.push(...args);
+  }
+
+  const result = await spawnProcess({
+    command: "zellij",
+    args: zellijArgs,
+  });
+
+  return result;
+}
+
+export async function createZellijSession(
+  options: ZellijSessionOptions,
+): Promise<Result<ZellijSuccess, ProcessError>> {
+  const { sessionName, layout, cwd, env } = options;
+
+  const zellijArgs: string[] = ["--session", sessionName];
+
+  if (layout) {
+    zellijArgs.push("--new-session-with-layout", layout);
+  }
+
+  const spawnOptions: { cwd?: string; env?: NodeJS.ProcessEnv } = {};
+
+  if (cwd) {
+    spawnOptions.cwd = cwd;
+  }
+
+  if (env) {
+    spawnOptions.env = { ...process.env, ...env };
+  }
+
+  const result = await spawnProcess({
+    command: "zellij",
+    args: zellijArgs,
+    options: Object.keys(spawnOptions).length > 0 ? spawnOptions : undefined,
+  });
+
+  return result;
+}
+
+/**
+ * Add a new tab with a layout to the current Zellij session.
+ * Must be called from inside a Zellij session.
+ */
+export async function addZellijTab(
+  options: ZellijTabOptions,
+): Promise<Result<ZellijSuccess, ProcessError>> {
+  const { layout, tabName, cwd } = options;
+
+  const zellijArgs: string[] = ["action", "new-tab", "--layout", layout];
+
+  if (tabName) {
+    zellijArgs.push("--name", tabName);
+  }
+
+  if (cwd) {
+    zellijArgs.push("--cwd", cwd);
+  }
+
+  const result = await spawnProcess({
+    command: "zellij",
+    args: zellijArgs,
+  });
+
+  return result;
+}

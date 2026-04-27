@@ -13,6 +13,7 @@ describe("preference keys", () => {
     deepStrictEqual(supportedPreferenceKeys, [
       "editor",
       "ai",
+      "terminal",
       "worktreesDirectory",
       "directoryNameSeparator",
       "keepBranch",

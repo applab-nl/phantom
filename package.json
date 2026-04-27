@@ -1,6 +1,6 @@
 {
   "name": "@phantompane/monorepo",
-  "version": "6.3.0-0",
+  "version": "6.3.0-local",
   "packageManager": "pnpm@10.33.2",
   "private": true,
   "type": "module",
@@ -21,14 +21,15 @@
     "ready": "turbo run fix typecheck test",
     "ready:check": "turbo run lint typecheck test",
     "phantom": "pnpm --filter @phantompane/cli-private run phantom",
-    "compile": "turbo run compile --filter=@phantompane/cli-private"
+    "compile": "turbo run compile --filter=@phantompane/cli-private",
+    "install:global": "pnpm build && pnpm --filter @phantompane/cli-private run install:global"
   },
   "engines": {
     "node": ">=22.0.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
-    "@typescript/native-preview": "7.0.0-dev.20260417.1",
+    "@typescript/native-preview": "7.0.0-dev.20260403.1",
     "oxfmt": "^0.44.0",
     "oxlint": "^1.56.0",
     "tsdown": "^0.21.8",
@@ -38,5 +39,11 @@
   },
   "dependencies": {
     "zod": "^4.3.6"
+  },
+  "pnpm": {
+    "overrides": {
+      "path-to-regexp": ">=8.4.0",
+      "brace-expansion": ">=1.1.13"
+    }
   }
 }

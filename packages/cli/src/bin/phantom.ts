@@ -10,6 +10,7 @@ import { editHandler } from "../handlers/edit.ts";
 import { execHandler } from "../handlers/exec.ts";
 import { githubHandler } from "../handlers/github.ts";
 import { githubCheckoutHandler } from "../handlers/github-checkout.ts";
+import { launchHandler } from "../handlers/launch.ts";
 import { listHandler } from "../handlers/list.ts";
 import { mcpHandler } from "../handlers/mcp.ts";
 import { preferencesHandler } from "../handlers/preferences.ts";
@@ -28,6 +29,7 @@ import { deleteHelp } from "../help/delete.ts";
 import { editHelp } from "../help/edit.ts";
 import { execHelp } from "../help/exec.ts";
 import { githubCheckoutHelp, githubHelp } from "../help/github.ts";
+import { launchHelp } from "../help/launch.ts";
 import { listHelp } from "../help/list.ts";
 import { mcpHelp } from "../help/mcp.ts";
 import {
@@ -98,6 +100,12 @@ const commands: Command[] = [
     description: "Launch your configured AI coding assistant in a worktree",
     handler: aiHandler,
     help: aiHelp,
+  },
+  {
+    name: "launch",
+    description: "Create a worktree and launch a Zellij session with AI agent",
+    handler: launchHandler,
+    help: launchHelp,
   },
   {
     name: "shell",
