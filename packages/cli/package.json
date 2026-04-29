@@ -1,13 +1,15 @@
 {
   "name": "@phantompane/cli-private",
-  "version": "6.2.2-local",
+  "version": "6.3.1-local",
   "private": true,
   "type": "module",
   "scripts": {
     "phantom": "node --no-warnings --experimental-strip-types src/bin/phantom.ts",
-    "build": "tsdown",
+    "build": "pnpm run build-app && tsdown && pnpm run copy-app",
+    "build-app": "pnpm --dir ../app run build",
+    "copy-app": "node --no-warnings --experimental-strip-types copy-app-assets.ts",
     "precompile": "rm -f output/*",
-    "compile": "node --no-warnings --experimental-strip-types build-executable.ts",
+    "compile": "pnpm run build-app && pnpm run copy-app && node --no-warnings --experimental-strip-types build-executable.ts",
     "lint": "oxfmt --check . && oxlint .",
     "fix": "oxfmt --write . && oxlint --fix .",
     "typecheck": "tsc --noEmit",
@@ -17,13 +19,13 @@
     "test:shell:zsh": "vitest run --root ../.. packages/cli/src/completions/phantom.zsh.test.shell.ts",
     "test": "vitest run --root ../.. packages/cli/src --exclude packages/cli/src/**/*.test.shell.ts",
     "prepublishOnly": "pnpm build",
-    "install:global": "pnpm build && mkdir -p ~/.local/bin && cp dist/phantom.js ~/.local/bin/phantom.js && printf '#!/bin/sh\\nexec node ~/.local/bin/phantom.js \"$@\"\\n' > ~/.local/bin/phantom && chmod +x ~/.local/bin/phantom"
+    "install:global": "bun build src/bin/phantom.ts --compile --minify --outfile dist/phantom && mkdir -p ~/.local/bin && cp dist/phantom ~/.local/bin/phantom && codesign --force --sign - ~/.local/bin/phantom"
   },
   "dependencies": {
     "@phantompane/core": "workspace:*",
     "@phantompane/git": "workspace:*",
-    "@phantompane/github": "workspace:*",
     "@phantompane/mcp": "workspace:*",
+    "@phantompane/preferences": "workspace:*",
     "@phantompane/process": "workspace:*",
     "@phantompane/utils": "workspace:*",
     "@phantompane/tmux": "workspace:*"

@@ -1,0 +1,14 @@
+{
+  "name": "@phantompane/codex",
+  "version": "6.3.1-local",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "oxfmt --check . && oxlint .",
+    "fix": "oxfmt --write . && oxlint --fix .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --root ../.. packages/codex/src"
+  }
+}

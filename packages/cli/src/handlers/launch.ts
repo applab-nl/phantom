@@ -12,6 +12,7 @@ import {
   createZellijSession,
   deleteZellijSession,
   getPhantomEnv,
+  getZellijMaxSessionNameLength,
   getZellijSessionStatus,
   isInsideZellij,
   spawnTerminalWindow,
@@ -187,9 +188,15 @@ export async function launchHandler(args: string[]): Promise<void> {
     }
 
     const projectName = basename(gitRoot);
-    // Zellij 0.44 limits session names to 28 characters
+    // Zellij rejects sessions whose `<socketDir>/<name>` path exceeds the
+    // UNIX socket path limit (104 on macOS, 108 elsewhere). Compute the
+    // actual cap for this system instead of guessing — on macOS TMPDIR can
+    // be long enough to leave only ~24 chars for the session name.
     const fullSessionName = `${projectName}-${worktreeName.replaceAll("/", "-")}`;
-    const sessionName = fullSessionName.slice(0, 28);
+    const maxSessionNameLength = getZellijMaxSessionNameLength();
+    const sessionName = fullSessionName
+      .slice(0, maxSessionNameLength)
+      .replace(/-+$/, "");
     const insideZellij = await isInsideZellij();
 
     // Check for and clean up dead Zellij sessions

@@ -1,10 +1,11 @@
 {
   "name": "@phantompane/monorepo",
-  "version": "6.2.2-local",
-  "packageManager": "pnpm@10.8.1",
+  "version": "6.3.1-local",
+  "packageManager": "pnpm@10.33.2",
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test --filter=!@phantompane/e2e",
     "test:e2e": "pnpm --filter @phantompane/e2e test",
@@ -28,15 +29,21 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
-    "@typescript/native-preview": "7.0.0-dev.20260327.2",
-    "oxfmt": "^0.41.0",
+    "@typescript/native-preview": "7.0.0-dev.20260403.1",
+    "oxfmt": "^0.44.0",
     "oxlint": "^1.56.0",
-    "tsdown": "^0.21.5",
+    "tsdown": "^0.21.8",
     "turbo": "^2.8.20",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.1"
+    "vitest": "^4.1.2"
   },
   "dependencies": {
     "zod": "^4.3.6"
+  },
+  "pnpm": {
+    "overrides": {
+      "path-to-regexp": ">=8.4.0",
+      "brace-expansion": ">=1.1.13"
+    }
   }
 }

@@ -23,6 +23,14 @@ vi.doMock("@phantompane/git", () => ({
   configSet: configSetMock,
 }));
 
+vi.doMock(
+  "@phantompane/preferences",
+  async () =>
+    await vi.importActual<typeof import("@phantompane/preferences")>(
+      "@phantompane/preferences",
+    ),
+);
+
 vi.doMock("../output.ts", () => ({
   output: {
     log: consoleLogMock,
@@ -74,7 +82,7 @@ describe("preferencesSetHandler", () => {
 
     await rejects(
       async () => await preferencesSetHandler(["unknown", "value"]),
-      /Exit with code 3: Unknown preference 'unknown'\. Supported keys: editor, ai, worktreesDirectory, directoryNameSeparator, keepBranch/,
+      /Exit with code 3: Unknown preference 'unknown'\. Supported keys: editor, ai, terminal, worktreesDirectory, directoryNameSeparator, keepBranch/,
     );
 
     strictEqual(exitMock.mock.calls[0][0], 3);

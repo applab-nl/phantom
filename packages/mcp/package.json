@@ -1,6 +1,6 @@
 {
   "name": "@phantompane/mcp",
-  "version": "6.2.2-local",
+  "version": "6.3.1-local",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -15,13 +15,12 @@
   "dependencies": {
     "@phantompane/core": "workspace:*",
     "@phantompane/git": "workspace:*",
-    "@phantompane/github": "workspace:*",
     "@phantompane/process": "workspace:*",
     "@phantompane/utils": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@modelcontextprotocol/inspector": "^0.21.1"
+    "@modelcontextprotocol/inspector": "^0.21.2"
   }
 }

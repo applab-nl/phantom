@@ -1,6 +1,62 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Result } from "@phantompane/utils";
 import type { ProcessError } from "./errors.ts";
 import { type SpawnSuccess, spawnProcess } from "./spawn.ts";
+
+// UNIX domain socket path limits (sun_path field of sockaddr_un).
+const ZELLIJ_SOCK_MAX_LENGTH_DARWIN = 104;
+const ZELLIJ_SOCK_MAX_LENGTH_OTHER = 108;
+// Mirrors `CLIENT_SERVER_CONTRACT_VERSION` in zellij-utils/src/consts.rs.
+const ZELLIJ_CONTRACT_DIR = "contract_version_1";
+
+interface ZellijEnv {
+  platform: NodeJS.Platform;
+  tmpDir: string;
+  uid: number;
+  socketDirOverride?: string;
+  xdgRuntimeDir?: string;
+}
+
+/**
+ * Compute Zellij's socket directory the same way zellij-utils/src/consts.rs does.
+ * Used to derive the maximum session name length permitted on this system.
+ */
+export function computeZellijSocketDir(env: ZellijEnv): string {
+  const baseDir =
+    env.socketDirOverride ??
+    (env.platform !== "darwin" && env.xdgRuntimeDir
+      ? join(env.xdgRuntimeDir, "zellij")
+      : join(env.tmpDir, `zellij-${env.uid}`));
+  return join(baseDir, ZELLIJ_CONTRACT_DIR);
+}
+
+/**
+ * Maximum allowed Zellij session name length on the current system.
+ *
+ * Zellij rejects sessions whose `<sock_dir>/<name>` path is >= the platform's
+ * UNIX socket limit. When the prefix is long (typical on macOS, where TMPDIR
+ * lives under /var/folders/...), the cap can be much smaller than expected
+ * and zellij reports a misleading "less than 0 characters" error.
+ */
+export function getZellijMaxSessionNameLength(
+  env: ZellijEnv = {
+    platform: process.platform,
+    tmpDir: tmpdir(),
+    uid: process.getuid?.() ?? 0,
+    socketDirOverride: process.env.ZELLIJ_SOCKET_DIR,
+    xdgRuntimeDir: process.env.XDG_RUNTIME_DIR,
+  },
+): number {
+  const sockMax =
+    env.platform === "darwin"
+      ? ZELLIJ_SOCK_MAX_LENGTH_DARWIN
+      : ZELLIJ_SOCK_MAX_LENGTH_OTHER;
+  const sockDir = computeZellijSocketDir(env);
+  // Path is `<sockDir>/<name>`; zellij's check is `>= sockMax`, so the name
+  // must satisfy `sockDir.length + 1 + name.length < sockMax`.
+  return Math.max(0, sockMax - sockDir.length - 2);
+}
 
 export type ZellijSplitDirection = "new" | "vertical" | "horizontal";
 
